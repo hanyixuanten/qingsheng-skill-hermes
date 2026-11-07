@@ -12,7 +12,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_DIR"
 
-UPSTREAM_URL="https://github.com/tomwong001/qingsheng-skill.git"
+UPSTREAM_URL="${QS_UPSTREAM_URL:-https://github.com/tomwong001/qingsheng-skill.git}"
 SKILL_DEST="${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng"
 STATE_FILE="$REPO_DIR/.sync-state/upstream-sha"
 
