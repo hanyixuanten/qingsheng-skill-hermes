@@ -7,7 +7,7 @@ description: "情圣 — 中文男性社交与恋爱私教（中文恋爱 AI · 
 
 ```bash
 # 版本检查（最多每 24 小时一次，不影响对话速度）
-_QS_LOCAL=$(cat ~/.claude/skills/qingsheng-skill/VERSION 2>/dev/null | tr -d '[:space:]' || echo "unknown")
+_QS_LOCAL=$(cat ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/VERSION 2>/dev/null | tr -d '[:space:]' || echo "unknown")
 _QS_LAST=$(cat ~/.qingsheng/last-update-check 2>/dev/null || echo 0)
 _QS_NOW=$(date +%s)
 _QS_DIFF=$(( _QS_NOW - _QS_LAST ))
@@ -21,7 +21,7 @@ fi
 echo "QS_VERSION=$_QS_LOCAL"
 ```
 
-如果输出包含 `UPGRADE_AVAILABLE <旧版本> <新版本>`：用 AskUserQuestion 问用户：
+如果输出包含 `UPGRADE_AVAILABLE <旧版本> <新版本>`：用 clarify 问用户：
 
 > 情圣有新版本 **v{新}**（你现在是 v{旧}），要更新吗？
 
@@ -32,6 +32,30 @@ echo "QS_VERSION=$_QS_LOCAL"
 如果 `~/.qingsheng/update-snoozed` 里的版本号 == 当前远端版本，本次跳过提示（用户已推迟过）。
 
 ---
+
+<!-- HERMES-ADAPT:BEGIN -->
+## Hermes 运行环境适配（优先级高于下文所有 Claude Code 假设）
+
+本技能原本为 Claude Code 编写，在 Hermes Agent 中运行时按以下映射执行：
+
+1. **读参考文件**：用 `skill_view(name='qingsheng', file_path='references/xxx.md')`。不要用 `~/.claude/skills/...` 这类绝对路径。
+2. **快捷指令不是独立斜杠命令**。用户说 `/急`、`急`、`/挽回`、`/换一个`、`/展示面`、`/自动`、`/顾问`、`/复盘`、`/qingsheng-upgrade`（带不带斜杠都算）时，用 `skill_view` 读对应文件，再按文件里的流程执行：
+   - 急 → `急.md`
+   - 挽回 → `挽回.md`
+   - 换一个 → `换一个.md`
+   - 展示面 → `展示面.md`
+   - 自动 → `自动.md`
+   - 顾问 → 回到本文件的默认顾问模式
+   - 复盘 → 按 `references/user-context.md` 的档案协议读取目标档案
+   - qingsheng-upgrade → `qingsheng-upgrade.md`（本机安装目录为 `${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/`；升级也可直接 `hermes skills install tomwong001/qingsheng-skill/skill --force`）
+3. **向用户提问**用 `clarify` 工具（选项式），取代 `AskUserQuestion`。
+4. **联网搜索**用 `web_search` / `web_extract`，取代 `WebSearch`。
+5. **看截图/图片**先用 `vision_analyze` 打开再分析（Hermes 不能像 Claude 那样直接内联读图）；OCR 细节看不清时按 `vision_analyze` 的 region 裁剪放大。
+6. **桌面应用操作**（素材采集）在 computer-use 工具可用时按 `references/user-context.md`「素材采集」执行；不可用时按原文降级路径请用户提供截图或文字。
+7. **档案存储**沿用 `~/.qingsheng/`（Linux/macOS）或 `$APPDATA/.qingsheng/`（Windows），与 Claude 版共用，可迁移。
+
+---
+<!-- HERMES-ADAPT:END -->
 
 # 情圣 — 社交表达与恋爱全流程私人教练 v6
 
@@ -77,7 +101,7 @@ echo "QS_VERSION=$_QS_LOCAL"
 
 **`/急`** — 快速模式，跳过信息门，直接给 3-5 句结论和行动建议。
 
-**`/复盘 <称呼>`** — 读取目标档案，串一遍历史进度和当前卡点。没有称呼则用 `AskUserQuestion` 让用户点选。
+**`/复盘 <称呼>`** — 读取目标档案，串一遍历史进度和当前卡点。没有称呼则用 `clarify` 让用户点选。
 
 **`/展示面`** — 展示面诊断模式。读取 `references/profile-audit.md`。
 - **有截图**：直接读取头像/朋友圈/个人主页截图，按 Gate A 更新用户档案，再分析
@@ -226,9 +250,9 @@ echo "QS_VERSION=$_QS_LOCAL"
 追问的目的是采集下一轮最需要的那一个信息，不是凑数。
 
 **约会落地规划（阶段4-5）**：对话推进到约见面/约会阶段时，主动提供实际落地帮助，不只是给话术：
-- **地点**：根据城市 + 她的喜好，用 WebSearch 搜具体场所（咖啡馆、餐厅、展览等），给真实地址和营业时间
+- **地点**：根据城市 + 她的喜好，用 web_search 搜具体场所（咖啡馆、餐厅、展览等），给真实地址和营业时间
 - **预约**：提醒是否需要提前订位（热门地方周末需要）
-- **天气**：如果约好了具体日期，用 WebSearch 查当天天气，影响户外/室内选择
+- **天气**：如果约好了具体日期，用 web_search 查当天天气，影响户外/室内选择
 - **接头方案**：双方确认档期与地点后，给具体见面时间、地点、备用方案；确认前只提出可商量的选项，不替用户说“我有空”，也不把尚未敲定的细节写成已确定
 
 **进阶工具按需调用**：分析信号时读 `references/signals-tools.md`；阶段 3-6 需要邀约、互动或亲密边界建议时读 `references/advanced-techniques.md`；需要平台特定细节时读 `references/platform-guide.md`；**给具体话术建议时，读 `references/examples-library.md` 对应阶段的示例，用真实案例作为参考或直接引用**；用户心态类问题（"我总是紧张""我总在等她回复"）时读 `references/mindset-concepts.md`。**读了不代表要全部输出**——只把和当前 1-2 个关键点相关的内容讲出来。

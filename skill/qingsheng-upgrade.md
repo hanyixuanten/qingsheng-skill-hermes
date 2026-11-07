@@ -15,24 +15,23 @@
 按优先级查找安装目录：
 
 ```
-~/.claude/skills/qingsheng-skill/    ← global（优先）
-.claude/skills/qingsheng-skill/      ← local（项目级）
+${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/    ← Hermes 唯一安装位置
 ```
 
 用 Bash 工具：
 ```bash
 # 检测 global
-ls ~/.claude/skills/qingsheng-skill/VERSION 2>/dev/null && echo "global"
+ls ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/VERSION 2>/dev/null && echo "global"
 # 检测 local  
-ls .claude/skills/qingsheng-skill/VERSION 2>/dev/null && echo "local"
+ls ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/VERSION 2>/dev/null && echo "local"
 # 检测 git
-ls ~/.claude/skills/qingsheng-skill/.git 2>/dev/null && echo "git-managed"
+ls ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/.git 2>/dev/null && echo "git-managed"
 ```
 
 ### Step 2：读取当前版本
 
 ```bash
-cat ~/.claude/skills/qingsheng-skill/VERSION 2>/dev/null || echo "unknown"
+cat ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/VERSION 2>/dev/null || echo "unknown"
 ```
 
 ### Step 3：检查远端最新版本
@@ -47,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/tomwong001/qingsheng-skill/main/VER
 
 **Git 管理的安装（有 .git 目录）**：
 ```bash
-git -C ~/.claude/skills/qingsheng-skill pull --ff-only
+git -C ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng pull --ff-only
 ```
 
 **Vendored 安装（无 .git）**：
@@ -56,16 +55,16 @@ git -C ~/.claude/skills/qingsheng-skill pull --ff-only
 TMP=$(mktemp -d)
 curl -fsSL https://github.com/tomwong001/qingsheng-skill/archive/refs/heads/main.tar.gz \
   | tar -xz -C "$TMP" --strip-components=1
-cp -r "$TMP/skill/"* ~/.claude/skills/qingsheng-skill/skill/
-cp "$TMP/VERSION" ~/.claude/skills/qingsheng-skill/
-cp "$TMP/CHANGELOG.md" ~/.claude/skills/qingsheng-skill/ 2>/dev/null || true
+cp -r "$TMP/skill/"* ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/skill/
+cp "$TMP/VERSION" ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/
+cp "$TMP/CHANGELOG.md" ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/ 2>/dev/null || true
 rm -rf "$TMP"
 ```
 
 ### Step 5：读取 CHANGELOG，汇报改动
 
 ```bash
-cat ~/.claude/skills/qingsheng-skill/CHANGELOG.md | head -60
+cat ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/CHANGELOG.md | head -60
 ```
 
 从 CHANGELOG 中提取本次升级的变更，用中文 3-5 条 bullet 告知用户。
@@ -73,7 +72,7 @@ cat ~/.claude/skills/qingsheng-skill/CHANGELOG.md | head -60
 ### Step 6：更新版本记录
 
 ```bash
-cat ~/.claude/skills/qingsheng-skill/VERSION > ~/.qingsheng/installed-version
+cat ${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng/VERSION > ~/.qingsheng/installed-version
 date -u +%s > ~/.qingsheng/last-update-check
 ```
 
@@ -103,8 +102,8 @@ date -u +%s > ~/.qingsheng/last-update-check
 检测 Windows：
 ```bash
 case "$(uname -s 2>/dev/null)" in
-  MINGW*|MSYS*|CYGWIN*) INSTALL_DIR="$APPDATA/.claude/skills/qingsheng-skill" ;;
-  *) INSTALL_DIR="$HOME/.claude/skills/qingsheng-skill" ;;
+  MINGW*|MSYS*|CYGWIN*) INSTALL_DIR="$APPDATA/${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng" ;;
+  *) INSTALL_DIR="$HOME/${HERMES_HOME:-$HOME/.hermes}/skills/social-media/qingsheng" ;;
 esac
 ```
 
