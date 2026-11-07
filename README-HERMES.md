@@ -50,7 +50,18 @@ scripts/sync-upstream.sh --no-install  # 不动本机已安装的技能
 提交 `sync: upstream vX @ sha` → 推送到 `origin/main` → 刷新本机
 `${HERMES_HOME}/skills/social-media/qingsheng`。
 
-已配置定时任务（Hermes cron，每天一次）自动执行该脚本；上游没更新时退出码 0 且无提交。
+已配置定时任务（Hermes cron，每 6 小时一次，**无 LLM 参与**）：上游没更新时脚本零输出、不打扰；
+同步成功或失败才发一条消息。
+
+| 项 | 值 |
+|---|---|
+| Job ID | `718310bfad8f`（`hermes cron list` 可查） |
+| 计划 | `0 */6 * * *` |
+| 入口 | `/opt/data/scripts/qingsheng-sync.sh` → 转发到本目录 `scripts/cron-sync.sh` |
+| 静默条件 | 输出 `UP_TO_DATE` 时退出码 0 且无 stdout |
+
+手动管理：`hermes cron pause|resume|remove 718310bfad8f`。想立刻跑一次用 `--force` 直接执行
+`scripts/sync-upstream.sh`。
 
 ## 目录
 
